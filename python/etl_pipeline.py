@@ -12,8 +12,8 @@ DATA = ROOT / "data"
 
 # Replace with your local SQL Server connection details.
 CONNECTION_STRING = (
-    "DRIVER={ODBC Driver 18 for SQL Server};"
-    "SERVER=localhost;"
+    "DRIVER={ODBC Driver 17 for SQL Server};"
+    "SERVER=localhost\\SQLEXPRESS;"
     "DATABASE=ETLDataQuality;"
     "Trusted_Connection=yes;"
     "TrustServerCertificate=yes;"
@@ -29,9 +29,18 @@ def transform_customers(df: pd.DataFrame) -> pd.DataFrame:
 
 def transform_orders(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
-    df["order_date"] = pd.to_datetime(df["order_date"], errors="coerce")
+
+    df["order_date"] = pd.to_datetime(
+        df["order_date"], errors="coerce"
+    ).astype(object)
+
+    df["order_date"] = df["order_date"].where(
+        pd.notna(df["order_date"]), None
+    )
+
     df["status"] = df["status"].str.strip().str.title()
     df["amount"] = pd.to_numeric(df["amount"], errors="coerce")
+
     return df
 
 def main():
